@@ -21,21 +21,24 @@ public class Controller {
     public Controller()
     {
         MainFrame frame = new MainFrame();
-        
+     //   frame.getSize(null)
         MapPanel mapPanel = new MapPanel();
         MenuPanel menuPanel = new MenuPanel();
+        //MapPainter pnt = new MapPainter();
         
         mapPanel.setBackground(Color.WHITE);
         menuPanel.setBackground(Color.LIGHT_GRAY);
         
         frame.setTitle("Mammoth Site");
         frame.setLayout(new BorderLayout());
-        frame.add(mapPanel, BorderLayout.CENTER);
-        frame.add(menuPanel, BorderLayout.WEST);
-        
-        // add drawings and menut to Panels
-        
+        frame.getContentPane().add(new MapPainter(), BorderLayout.CENTER);
+     
+        frame.getContentPane().add(menuPanel, BorderLayout.WEST);
+        frame.setBounds(0,0,800, 800);
+        frame.setLocationRelativeTo(null); // Center window in center of screen
+        // pass into mapPanel
         frame.setVisible(true);
+        // add drawings and menu to Panels
         mapPanel.setVisible(true);
         menuPanel.setVisible(true);
     }

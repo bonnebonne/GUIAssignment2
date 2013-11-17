@@ -9,6 +9,7 @@ package guiassignment2;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.geom.*;
+//import guiassignment2.*;
 
 /**
  *
@@ -16,4 +17,11 @@ import java.awt.geom.*;
  */
 public class MapPanel extends JPanel {
     
-}
+    public MapPanel() {
+        JPanel panel = new JPanel();
+//        MapPainter obj = new MapPainter();
+//        panel.add(obj);
+//        obj.setVisible(true);
+    }
+} 
+

@@ -13,5 +13,6 @@ import javax.swing.*;
  * @author Ben
  */
 public class MenuPanel extends JPanel{
+    //MapPainter pnt = new MapPainter();
     
 }

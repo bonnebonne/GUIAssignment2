@@ -12,7 +12,8 @@ import java.util.*;
 
 public class XMLParse
 {
-    public XMLParse( String[] args )
+    private Document doc = null;
+    public XMLParse( String args )
     {
 //	// check usage
 //        if ( args.length == 0 )
@@ -20,47 +21,29 @@ public class XMLParse
 //            System.out.println( "Usage: java ElementLister URL" );
 //            return;
 //        }
-
 	// read and parse XML document
         SAXBuilder builder = new SAXBuilder();
+        //Element root = null;
         try
         {
-            Document doc = builder.build( args[0] );	// parse XML tags
-            Element root = doc.getRootElement();	// get root of XML tree
-            listChildren( root, 0 );			// print info in XML tree
+            doc = builder.build( args );	// parse XML tags
+            //Element root = doc.getRootElement();	// get root of XML tree
+            //listChildren( root, 0 );
+            // print info in XML tree
         }
         // JDOMException indicates a well-formedness error
         catch ( JDOMException e )
         {
-            System.out.println( args[0] + " is not well-formed." );
+            System.out.println( args + " is not well-formed." );
             System.out.println( e.getMessage() );
+            
         }
         catch ( IOException e )
         {
+            doc = null;
             System.out.println( e );
         }
-    }
-
-    // print XML tags and leaf node values
-    public static void listChildren( Element current, int depth )
-    {
-	// get children of current node
-        List children = current.getChildren();
-        Iterator iterator = children.iterator();
-
-        // print node name and leaf node value, indented one space per level in XML tree
-        printSpaces( depth );
-        System.out.print( current.getName() );
-        if ( !iterator.hasNext() )
-            System.out.print( " = " + current.getValue() );
-        System.out.println();
-
-        // recursively process each child node
-        while ( iterator.hasNext() )
-        {
-            Element child = ( Element ) iterator.next();
-            listChildren( child, depth + 1 );
-        }
+        
     }
 
     // indent to show hierarchical structure of XML tree
@@ -70,5 +53,17 @@ public class XMLParse
         {
             System.out.print( "  " );
         }
+    }
+    
+    public Element getRoot()
+    {
+        // only return 'doc.getRootElement()' if it is NOT null
+        // as if 'doc' is null, getRootElement() method causes the
+        // the program to crash
+        if(doc != null)
+            return doc.getRootElement();
+        // if doc is null skip 'getRootElement() method and just return null
+        else
+            return null;
     }
 }
