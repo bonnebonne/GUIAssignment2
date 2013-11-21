@@ -21,22 +21,46 @@ public class MapPainter extends JPanel
 
     public MapPainter()
     {
+        Path2D p;
         gp = new GeneralPath();
         // get simple, normal, detailed copies of bone records
         Double[] temp;
-        //polyLines lines = new polyLines();
-        //ArrayList<ArrayList<Element>> bones = lines.getBones();
-        ArrayList<Double[]> points = getWalkway();
+        ArrayList<Double[]> points = new ArrayList<Double[]>();
+        polyLines lines = new polyLines();
+       
+        lines.getBoneRecs();
+        points = getWalkway();
 
-        gp.moveTo(points.get(0)[0]*10.0, points.get(0)[1]*10.0);
-        gp.lineTo(points.get(0)[2]*10.0, points.get(0)[3]*10.0);
-        gp.closePath();
-        for(int i = 1; i < points.size(); i++)
+        for(int i = 0 ; i < lines.allPolyPoints.size(); i++)
+        {
+            
+            for(int j = 0; j < lines.allPolyPoints.get(i).size(); j++)
+            {
+                
+                temp = lines.allPolyPoints.get(i).get(j);
+                if(temp != null){
+                gp.moveTo((temp[0]-scaleMeters[0])*10.0, (temp[1]-scaleMeters[1])*10.0);
+                for(int k = 2; k < temp.length;)
+                {
+                    gp.lineTo((temp[k]-scaleMeters[0])*10.0 , (temp[k+1]-scaleMeters[1])*10.0);
+                    k+=2;
+                }
+                gp.closePath();}
+            }
+        }
+
+        for(int i = 0; i < points.size(); i++)
         {
             temp = points.get(i);
             gp.moveTo(temp[0]*10.0,temp[1]*10.0);
-            gp.lineTo(temp[2]*10.0, temp[3]*10.0);
-            gp.closePath();
+
+            for(int j = 2; j < points.get(i).length;)
+            {
+                gp.lineTo(temp[j]*10.0, temp[j+1]*10.0);
+                j+=2;
+            }
+            //gp.closePath();
+            
         }
         gp.closePath();
         
@@ -53,10 +77,20 @@ public class MapPainter extends JPanel
         super.paintComponent( g );	// call the base class constructor
 
         Graphics2D g2d = ( Graphics2D )g;		// get graphics context
-        AffineTransform at = g2d.getTransform();	// get current transform
+        //g2d.setStroke(new BasicStroke(2));
+        //g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-	// draw triangle outline
-        g2d.setColor( Color.BLUE );
+
+        AffineTransform at = g2d.getTransform();	// get current transform
+        // draw triangle outline
+        AffineTransform transform = new AffineTransform();
+
+        transform.scale( 1.0, -1.0 );
+        g2d.setTransform( transform );
+        g2d.setColor( Color.black );
+        g2d.translate(155.0, -600.0);
+        //g2d.rotate(Math.PI);
+
         g2d.draw( gp );
     }
 
@@ -102,7 +136,7 @@ public class MapPainter extends JPanel
         //Double[] xyPoints;
         ArrayList<Double[]> xyPoints = new ArrayList<Double[]>();
         
-        for(i = 5; i < children.size()-1; i++)
+        for(i = 5; i < children.size(); i++)
         {
             Area = children.get(i).getValue();
             Area = Area.replace("\n", "");
@@ -114,7 +148,7 @@ public class MapPainter extends JPanel
         return xyPoints;
     }
 
-    public Double[] getXY(String[] x_y)
+    private Double[] getXY(String[] x_y)
     {
         Double[] points = new Double[x_y.length];
         Double temp;

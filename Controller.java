@@ -41,6 +41,7 @@ public class Controller {
         // add drawings and menu to Panels
         mapPanel.setVisible(true);
         menuPanel.setVisible(true);
+        
     }
     
     }
