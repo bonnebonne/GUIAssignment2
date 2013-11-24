@@ -7,40 +7,67 @@
 package guiassignment2;
 
 import javax.swing.*;
-import javax.swing.border.*;
 import java.awt.*;
-import guiassignment2.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 
 /**
  *
  * @author Ben
  */
-public class Controller {
+public class Controller  {
     
+    public MapPanel mapPanel;
+    public MainFrame frame;
     
     public Controller()
-    {
-        MainFrame frame = new MainFrame();
-     //   frame.getSize(null)
-        MapPanel mapPanel = new MapPanel();
+    {    
+      
+        //set up the main frame and menu panel
+        frame = new MainFrame();
+        //frame.getSize(null)
+        //MapPanel mapPanel = new MapPanel();
         MenuPanel menuPanel = new MenuPanel();
-        //MapPainter pnt = new MapPainter();
+        menuPanel.add(new JSlider());
         
-        mapPanel.setBackground(Color.WHITE);
+        //JScrollPane scroller = new JScrollPane(mapPainter);
+        //scroller.setPreferredSize(new Dimension(200,200));
+
+        //set up the map panel
+        mapPanel = new MapPanel();
+        mapPanel.setFocusable(true);
+        mapPanel.addMouseListener(mapPanel);
+        mapPanel.addMouseWheelListener(mapPanel);
+        frame.addMouseListener(mapPanel);
+        frame.addMouseWheelListener(mapPanel);
+        frame.setFocusable(true);
+        
+        //set up the painter
+        MapPainter mapPainter = new MapPainter();
+        mapPanel.add(mapPainter);
+        
         menuPanel.setBackground(Color.LIGHT_GRAY);
-        
+        //scroller.setPreferredSize(new Dimension(6000, 6000));
         frame.setTitle("Mammoth Site");
         frame.setLayout(new BorderLayout());
-        frame.getContentPane().add(new MapPainter(), BorderLayout.CENTER);
+
+        //mapPainter.setPreferredSize(new Dimension(10, 10));
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new ScrollPaneLayout());
      
         frame.getContentPane().add(menuPanel, BorderLayout.WEST);
-        frame.setBounds(0,0,800, 800);
+        frame.getContentPane().add(mapPainter, BorderLayout.CENTER);
+        frame.setSize(1200, 800);
         frame.setLocationRelativeTo(null); // Center window in center of screen
         // pass into mapPanel
         frame.setVisible(true);
+        //scroller.setVisible(true);
         // add drawings and menu to Panels
-        mapPanel.setVisible(true);
-        menuPanel.setVisible(true);
+        //mapPanel.setVisible(true);
+        //menuPanel.setVisible(true);
         
     }
     

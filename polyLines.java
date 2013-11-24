@@ -20,22 +20,22 @@ public class polyLines
 {
     
     // stores a bone records poly lines
-        public String xymin;
-        public String xymax;
-        public String uniqueID;
-        public int objectnum;
-        public String taxon;
-        public int element;
-        public String subElement;
-        public String side;
-        public String completeness;
-        public String expside;
-        public String articulate;
-        public String gender;
-        public String datefound;
-        public Double elevation;
-        public int objectid;
-        public Double shapelength;   
+        public ArrayList<String> xymin;
+        public ArrayList<String> xymax;
+        public ArrayList<String> uniqueID;
+        public ArrayList<Integer> objectnum;
+        public ArrayList<String> taxon;
+        public ArrayList<Integer> element;
+        public ArrayList<String> subElement;
+        public ArrayList<String> side;
+        public ArrayList<String> completeness;
+        public ArrayList<String> expside;
+        public ArrayList<String> articulate;
+        public ArrayList<String> gender;
+        public ArrayList<String> datefound;
+        public ArrayList<Double> elevation;
+        public ArrayList<Integer> objectid;
+        public ArrayList<Double> shapelength;   
         
         public ArrayList<ArrayList<Double[]>> allPolyPoints;
 
@@ -45,6 +45,24 @@ public class polyLines
     // then it calls getBoneRecs to get all bone record poly lines
     public  polyLines()
     {
+        xymin = new ArrayList<String>();
+        xymax = new ArrayList<String>();
+        uniqueID = new ArrayList<String>();
+        objectnum = new ArrayList<Integer>();
+        taxon = new ArrayList<String>();
+        element = new ArrayList<Integer>();
+        subElement = new ArrayList<String>();
+        side = new ArrayList<String>();
+        completeness = new ArrayList<String>();
+        expside = new ArrayList<String>();
+        articulate = new ArrayList<String>();
+        gender = new ArrayList<String>();
+        datefound = new ArrayList<String>();
+        elevation = new ArrayList<Double>();
+        objectid = new ArrayList<Integer>();
+        shapelength = new ArrayList<Double>();
+        allPolyPoints = new ArrayList<ArrayList<Double[]>>(); 
+
     }
     
     public class boneDetails
@@ -62,7 +80,6 @@ public class polyLines
 //       ArrayList<ArrayList<Double[]>> allPolyPoints
 //               = new ArrayList<ArrayList<Double[]>>();
        bonerecs = root.getChildren("bonerec");
-       allPolyPoints = new ArrayList<ArrayList<Double[]>>(); 
        //polyLines rec = new polyLines();
        Element record;
        Element boneRec;
@@ -70,29 +87,29 @@ public class polyLines
        for(int i = 0; i < bonerecs.size(); i++)
        {
            record = bonerecs.get(i).clone();
-           uniqueID = record.getChildTextTrim("uniqueid");
-           datefound = record.getChildTextTrim("datefound");
-           objectnum = Integer.parseInt(record.getChildTextTrim("objectnum"));
-           taxon = record.getChildTextTrim("taxon");
-           element = Integer.parseInt(record.getChildTextTrim("element"));
-           subElement = record.getChildTextTrim("subelement");
-           side = record.getChildTextTrim("side");
-           completeness = record.getChildTextTrim("completeness");
-           expside = record.getChildTextTrim("expside");
-           articulate = record.getChildTextTrim("articulate");
-           gender = record.getChildTextTrim("gender");
-           elevation = Double.parseDouble(record.getChildTextTrim("elevation"));
-           objectid = Integer.parseInt(record.getChildTextTrim("objectid"));
-           shapelength = Double.parseDouble(record.getChildTextTrim("shapelength"));
-           XMLParse bone  = new XMLParse("bonexml/" + uniqueID + ".xml");
+           uniqueID.add(record.getChildTextTrim("uniqueid"));
+           datefound.add(record.getChildTextTrim("datefound"));
+           objectnum.add(Integer.parseInt(record.getChildTextTrim("objectnum")));
+           taxon.add(record.getChildTextTrim("taxon"));
+           element.add(Integer.parseInt(record.getChildTextTrim("element")));
+           subElement.add(record.getChildTextTrim("subelement"));
+           side.add(record.getChildTextTrim("side"));
+           completeness.add(record.getChildTextTrim("completeness"));
+           expside.add(record.getChildTextTrim("expside"));
+           articulate.add(record.getChildTextTrim("articulate"));
+           gender.add(record.getChildTextTrim("gender"));
+           elevation.add(Double.parseDouble(record.getChildTextTrim("elevation")));
+           objectid.add(Integer.parseInt(record.getChildTextTrim("objectid")));
+           shapelength.add(Double.parseDouble(record.getChildTextTrim("shapelength")));
+           XMLParse bone  = new XMLParse("bonexml/" + uniqueID.get(i) + ".xml");
            boneRec = bone.getRoot();
            // if the xml file reference from 'bones.xml' does not exist, the
            // loop is broken since 'getChildTextTrim' method will throw
            // an exception if boneRec is null
            if(boneRec != null)
            {
-                xymin = boneRec.getChildTextTrim("xymin");
-                xymax = boneRec.getChildTextTrim("xymax");
+                xymin.add(boneRec.getChildTextTrim("xymin"));
+                xymax.add(boneRec.getChildTextTrim("xymax"));
                 allPolyPoints.add(getPolyLines(bone.getRoot()));
            }
        }
