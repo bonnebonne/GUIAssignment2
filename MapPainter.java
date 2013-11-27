@@ -14,80 +14,94 @@ import java.util.*;
 import org.jdom2.Element;
 
 
-public class MapPainter extends JPanel
+public class MapPainter extends JPanel implements MouseWheelListener, MouseListener
 {
     private GeneralPath gp;
+    private ArrayList<GeneralPath> path;
     public Double[] scaleMeters;
-
+    public polyLines lines;
+    private int drawNum;
+    public Double scaleFactor;
+    private int xPressed;
+    private int yPressed;
+    private int xOffset;
+    private int yOffset;
     public MapPainter()
     {
+        // intialize drawing component
         gp = new GeneralPath();
-        // get simple, normal, detailed copies of bone records
-        Double[] temp;
-        ArrayList<Double[]> points = new ArrayList<Double[]>();
-        polyLines lines = new polyLines();
-       
+        path = new ArrayList<GeneralPath>();
+        drawNum = 0;
+        // initialize scaleFactor
+        scaleFactor = 15.0;
+        // initialize class
+        lines = new polyLines();
+        xOffset = 0;
+        yOffset = 0;
+        // get data from xml records
         lines.getBoneRecs();
-        points = getWalkway();
-
-        for(int i = 0 ; i < lines.allPolyPoints.size(); i++)
-        {
-            
-            for(int j = 0; j < lines.allPolyPoints.get(i).size(); j++)
-            {
-                
-                temp = lines.allPolyPoints.get(i).get(j);
-                if(temp != null && lines.element.get(i) < 8)
-                {
-                    gp.moveTo((temp[0]-scaleMeters[0])*20.0, (temp[1]-scaleMeters[1])*20.0);
-                    for(int k = 2; k < temp.length;)
-                    {
-                        gp.lineTo((temp[k]-scaleMeters[0])*20.0 , (temp[k+1]-scaleMeters[1])*20.0);
-                        k+=2;
-                    }
-                    gp.closePath();
-                }
-            }
-        }
-        
-        for(int i = 0; i < points.size(); i++)
-        {
-            temp = points.get(i);
-            gp.moveTo(temp[0]*20.0,temp[1]*20.0);
-
-            for(int j = 2; j < points.get(i).length;)
-            {
-                gp.lineTo(temp[j]*20.0, temp[j+1]*20.0);
-                j+=2;
-            }
-            
-            //gp.closePath();
-            
-        }
-        gp.closePath();
-        
-
     }
 
     // paintComponent() is the display callback function
     public void paintComponent( Graphics g )
     {
         super.paintComponent( g );	// call the base class constructor
-        
+        ArrayList<Double[]> points = new ArrayList<Double[]>();
+        points = getWalkway();
+        Double[] temp;
+        //GeneralPath newDraw = new GeneralPath();
+        path.add(new GeneralPath());
         Graphics2D g2d = ( Graphics2D )g;		// get graphics context
         //g2d.setStroke(new BasicStroke(2));
         //g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         
-        
-        AffineTransform transform = new AffineTransform();
+        g2d.setColor(Color.BLACK);
+        for(int i = 0; i < points.size(); i++)
+        {
+            temp = points.get(i);
+            path.get(drawNum).moveTo(temp[0]*scaleFactor,temp[1]*scaleFactor);
 
-        transform.scale( 1.0, -1.0 );
-        g2d.setTransform( transform );
-        g2d.setColor( Color.black );
-        g2d.translate(500.0, -500.0);
-        //g2d.scale(2.0, 2.0);
-        g2d.setColor(Color.GREEN);
-        g2d.draw( gp );
+            for(int j = 2; j < points.get(i).length;)
+            {
+                path.get(drawNum).lineTo(temp[j]*scaleFactor, temp[j+1]*scaleFactor);
+                j+=2;
+            }            
+        }
+        path.get(drawNum).closePath();
+        //transform.scale( 1.0, -1.0 );
+        //g2d.setTransform( transform );
+        g2d.translate(xOffset, yOffset);
+        //g2d.setColor(Color.red);
+        g2d.draw(path.get(drawNum));
+        drawNum += 1;
+        path.add(new GeneralPath()); 
+
+        for(int i = 0 ; i < lines.allPolyPoints.size(); i++)
+        {
+            g2d.setColor(setElevationColor(lines.elevation.get(i)));
+            for(int j = 0; j < lines.allPolyPoints.get(i).size(); j++)
+            {
+                
+                temp = lines.allPolyPoints.get(i).get(j);
+                if(temp != null && lines.element.get(i) < 8)
+                {
+                    path.get(drawNum).moveTo((temp[0]-scaleMeters[0])*scaleFactor, (temp[1]-scaleMeters[1])*scaleFactor);
+                    for(int k = 2; k < temp.length;)
+                    {
+                        path.get(drawNum).lineTo((temp[k]-scaleMeters[0])*scaleFactor , (temp[k+1]-scaleMeters[1])*scaleFactor);
+                        k+=2;
+                    }
+                    path.get(drawNum).closePath();
+                }
+            }
+            //newDraw = (GeneralPath) newDraw.clone();
+            g2d.draw(path.get(drawNum));
+            path.add(new GeneralPath()); 
+            drawNum += 1;
+        }
+
+        //g2d.setColor(Color.red);
+        //g2d.draw( gp );
     }
 
     // set initial panel size
@@ -158,5 +172,115 @@ public class MapPainter extends JPanel
             points[i] = temp;
         }   
         return points;
+    }
+    
+    private Color setElevationColor(double elevation)
+    {
+        Color val;
+        if(elevation <= -2.0)
+            val = new Color(0, 159, 9);
+        else if(elevation <= -1.5)
+            val = new Color(145, 191, 0);
+        else if(elevation <= -1.0)
+            val = Color.green;
+        else if(elevation <= -0.5)
+            val = new Color(213,186,0);
+        else if(elevation <= 0.0)
+            val = Color.orange;
+        else if( elevation <= 1.0)
+            val = Color.red;
+        else
+            val = Color.pink;
+        return val;
+    }
+    private Point getViewCenter() {
+        JViewport vp = (JViewport)this.getParent();
+        Point p = vp.getViewPosition();
+        return new Point(p.x + vp.getWidth()/2, p.y + vp.getHeight()/2);
+
+//        
+//        scrolRect        
+    }
+    
+    private void setViewCenter(Point p) 
+    {
+        JViewport vp = (JViewport) this.getParent();  
+        Rectangle viewRect = vp.getViewRect();
+        
+        viewRect.x = p.x - viewRect.width/2;
+        viewRect.y = p.y - viewRect.height/2;
+        
+        scrollRectToVisible(viewRect);
+    }
+    
+    public void setZoomFactor(double zoom)
+    {
+        Point center = getViewCenter();
+        
+        Dimension dim = this.getSize();
+        dim = new Dimension((int)(dim.width*zoom), (int)(dim.height*zoom));
+        
+        this.setPreferredSize(dim);
+        this.setViewCenter(center);
+    }
+    
+        @Override
+    public void mouseExited(MouseEvent e)
+    {
+         return;
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e)
+    {
+         return;
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e)
+    {
+        if(e.getButton() == MouseEvent.BUTTON1)
+        {
+            xPressed = e.getX()-xPressed;
+            yPressed = e.getY()-yPressed;
+            xOffset = xPressed;//*(int)((double)scaleFactor);
+            yOffset = yPressed;//*(int)((double)scaleFactor);
+            
+            
+        }
+        repaint();
+        return;
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e)
+    {
+        if(e.getButton() == MouseEvent.BUTTON1)
+        {
+            xPressed = e.getX();
+            yPressed = e.getY();
+        }            
+        return;
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e)
+    {
+       System.out.println("mouse clicked!");
+         return;
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e)
+    {
+        System.out.println("mouse wheel moved!");
+//        setZoomFactor(.9);
+        int wheelDirection = e.getWheelRotation();
+        if(wheelDirection < 0)
+        scaleFactor *= 1.25;
+        else if(wheelDirection > 0)
+            scaleFactor *= 0.8;
+        repaint();
+        return;
     }
 }

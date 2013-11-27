@@ -35,18 +35,18 @@ public class Controller  {
         
         //JScrollPane scroller = new JScrollPane(mapPainter);
         //scroller.setPreferredSize(new Dimension(200,200));
+        MapPainter mapPainter = new MapPainter();
 
         //set up the map panel
         mapPanel = new MapPanel();
-        mapPanel.setFocusable(true);
-        mapPanel.addMouseListener(mapPanel);
-        mapPanel.addMouseWheelListener(mapPanel);
-        frame.addMouseListener(mapPanel);
-        frame.addMouseWheelListener(mapPanel);
+        mapPainter.setFocusable(true);
+        mapPainter.addMouseListener(mapPainter);
+        mapPainter.addMouseWheelListener(mapPainter);
+        frame.addMouseListener(mapPainter);
+        frame.addMouseWheelListener(mapPainter);
         frame.setFocusable(true);
         
         //set up the painter
-        MapPainter mapPainter = new MapPainter();
         mapPanel.add(mapPainter);
         
         menuPanel.setBackground(Color.LIGHT_GRAY);

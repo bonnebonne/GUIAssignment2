@@ -12,7 +12,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import javax.swing.*;
-//import guiassignment2.*;
+import guiassignment2.MapPainter;
 
 /**
  *
@@ -90,7 +90,8 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseListene
     public void mouseWheelMoved(MouseWheelEvent e)
     {
         System.out.println("mouse wheel moved!");
-        setZoomFactor(.9);
+//        setZoomFactor(.9);
+        //scaleFactor = scaleFactor * 1.25
         return;
     }
 } 
