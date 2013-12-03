@@ -42,6 +42,7 @@ public class Controller  {
         mapPainter.setFocusable(true);
         mapPainter.addMouseListener(mapPainter);
         mapPainter.addMouseWheelListener(mapPainter);
+        mapPainter.addMouseMotionListener(mapPainter);
         frame.addMouseListener(mapPainter);
         frame.addMouseWheelListener(mapPainter);
         frame.setFocusable(true);

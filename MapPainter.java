@@ -14,7 +14,7 @@ import java.util.*;
 import org.jdom2.Element;
 
 
-public class MapPainter extends JPanel implements MouseWheelListener, MouseListener
+public class MapPainter extends JPanel implements MouseWheelListener, MouseListener, MouseMotionListener
 {
     private GeneralPath gp;
     private ArrayList<GeneralPath> path;
@@ -239,18 +239,18 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
     @Override
     public void mouseReleased(MouseEvent e)
     {
-        if(e.getButton() == MouseEvent.BUTTON1)
-        {
-            xPressed = e.getX()-xPressed;
-            yPressed = e.getY()-yPressed;
-            xOffset = xPressed;//*(int)((double)scaleFactor);
-            yOffset = yPressed;//*(int)((double)scaleFactor);
+//        if(e.getButton() == MouseEvent.BUTTON1)
+//        {
+//            xPressed = e.getX();//-xPressed;
+//            yPressed = e.getY();//-yPressed;
+//            xOffset = xPressed;//*(int)((double)scaleFactor);
+//            yOffset = yPressed;//*(int)((double)scaleFactor);
             
-            
-        }
-        repaint();
-        return;
-    }
+//            xPressed = xOffset;
+//            yPressed = yOffset;
+//        }
+        //repaint();
+}
 
     @Override
     public void mousePressed(MouseEvent e)
@@ -267,6 +267,8 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
     public void mouseClicked(MouseEvent e)
     {
        System.out.println("mouse clicked!");
+       if(e.getButton() == 0)
+           ;//xPressed +=
          return;
     }
 
@@ -277,10 +279,35 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
 //        setZoomFactor(.9);
         int wheelDirection = e.getWheelRotation();
         if(wheelDirection < 0)
-        scaleFactor *= 1.25;
+        {
+            scaleFactor *= 1.25;
+            
+            xOffset *= (int)((double)1.25);
+            yOffset *= (int)((double)1.25);
+        }
         else if(wheelDirection > 0)
+        {
             scaleFactor *= 0.8;
+            xOffset *= 0.8;
+            yOffset *= 0.8;
+        }
         repaint();
         return;
+    }
+    
+    @Override
+    public void mouseMoved(MouseEvent e)
+    {
+        System.out.println("Mouse moved!");
+    }
+    @Override
+    public void mouseDragged(MouseEvent e)
+    {
+        //System.out.println("Mouse Dragged!");
+        xOffset = e.getX()-xPressed;
+        yOffset = e.getY()-yPressed;
+        //xOffset = xPressed;//*(int)((double)scaleFactor);
+        //yOffset = yPressed;//*(int)((double)scaleFactor);
+        repaint();
     }
 }
