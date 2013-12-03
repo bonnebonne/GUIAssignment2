@@ -20,7 +20,7 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
     private ArrayList<GeneralPath> path;
     public Double[] scaleMeters;
     public polyLines lines;
-    private int drawNum;
+    //private int drawNum;
     public Double scaleFactor;
     private int xPressed;
     private int yPressed;
@@ -31,7 +31,7 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
         // intialize drawing component
         gp = new GeneralPath();
         path = new ArrayList<GeneralPath>();
-        drawNum = 0;
+       
         // initialize scaleFactor
         scaleFactor = 15.0;
         // initialize class
@@ -49,7 +49,10 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
         ArrayList<Double[]> points = new ArrayList<Double[]>();
         points = getWalkway();
         Double[] temp;
+        int drawNum = 0;
         //GeneralPath newDraw = new GeneralPath();
+        if(!path.isEmpty())
+            path.clear();
         path.add(new GeneralPath());
         Graphics2D g2d = ( Graphics2D )g;		// get graphics context
         //g2d.setStroke(new BasicStroke(2));
@@ -91,7 +94,7 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
                         path.get(drawNum).lineTo((temp[k]-scaleMeters[0])*scaleFactor , (temp[k+1]-scaleMeters[1])*scaleFactor);
                         k+=2;
                     }
-                    path.get(drawNum).closePath();
+                    //path.get(drawNum).closePath();
                 }
             }
             //newDraw = (GeneralPath) newDraw.clone();
@@ -239,30 +242,27 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
     @Override
     public void mouseReleased(MouseEvent e)
     {
-//        if(e.getButton() == MouseEvent.BUTTON1)
-//        {
-//            xPressed = e.getX();//-xPressed;
-//            yPressed = e.getY();//-yPressed;
-//            xOffset = xPressed;//*(int)((double)scaleFactor);
-//            yOffset = yPressed;//*(int)((double)scaleFactor);
-            
-//            xPressed = xOffset;
-//            yPressed = yOffset;
-//        }
-        //repaint();
-}
+
+    }
 
     @Override
     public void mousePressed(MouseEvent e)
     {
         if(e.getButton() == MouseEvent.BUTTON1)
         {
-            xPressed = e.getX();
-            yPressed = e.getY();
+            xPressed = e.getX() - xOffset;
+            yPressed = e.getY() - yOffset;
         }            
-        return;
     }
+    @Override
+    public void mouseDragged(MouseEvent e)
+    {
+        //System.out.println("Mouse Dragged!");
+        xOffset = e.getX()-xPressed;
+        yOffset = e.getY()-yPressed;
 
+        repaint();
+    }
     @Override
     public void mouseClicked(MouseEvent e)
     {
@@ -281,15 +281,14 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
         if(wheelDirection < 0)
         {
             scaleFactor *= 1.25;
-            
-            xOffset *= (int)((double)1.25);
-            yOffset *= (int)((double)1.25);
+            xOffset = (int)(xOffset * (double)1.25);
+            yOffset = (int)(yOffset * (double)1.25);
         }
         else if(wheelDirection > 0)
         {
             scaleFactor *= 0.8;
-            xOffset *= 0.8;
-            yOffset *= 0.8;
+            xOffset = (int)(xOffset * (double).8);
+            yOffset = (int)(yOffset * (double).8);
         }
         repaint();
         return;
@@ -300,14 +299,5 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
     {
         System.out.println("Mouse moved!");
     }
-    @Override
-    public void mouseDragged(MouseEvent e)
-    {
-        //System.out.println("Mouse Dragged!");
-        xOffset = e.getX()-xPressed;
-        yOffset = e.getY()-yPressed;
-        //xOffset = xPressed;//*(int)((double)scaleFactor);
-        //yOffset = yPressed;//*(int)((double)scaleFactor);
-        repaint();
-    }
+
 }
