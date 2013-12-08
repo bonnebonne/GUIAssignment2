@@ -4,22 +4,27 @@
 
 package guiassignment2;
 
-import guiassignment2.Controller;
 //import  guiassignment2.XMLParse.listChildren;
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 import java.util.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.jdom2.Element;
 
 
-public class MapPainter extends JPanel implements MouseWheelListener, MouseListener, MouseMotionListener
+public class MapPainter extends JPanel implements MouseWheelListener,
+            MouseListener, MouseMotionListener, ChangeListener
 {
     private GeneralPath gp;
     private ArrayList<GeneralPath> path;
+    private ArrayList<int[]> DrawObjects;
     public Double[] scaleMeters;
     public polyLines lines;
+    public Controller controller;
+    public int detailLevel;
     //private int drawNum;
     public Double scaleFactor;
     private int xPressed;
@@ -27,17 +32,21 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
     private int xOffset;
     private int yOffset;
     private int zoomLevel;
+    private JToolTip toolTip;
+    
     public MapPainter()
     {
         // intialize drawing component
         gp = new GeneralPath();
         path = new ArrayList<GeneralPath>();
-       
+        toolTip = new JToolTip();
+        DrawObjects = null;
         // initialize scaleFactor
         scaleFactor = 15.0;
         zoomLevel = 0;
         // initialize class
         lines = new polyLines();
+        detailLevel = 16;
         xOffset = 0;
         yOffset = 0;
         // get data from xml records
@@ -50,32 +59,29 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
         super.paintComponent( g );	// call the base class constructor
         ArrayList<Double[]> points = new ArrayList<Double[]>();
         points = getWalkway();
+        
         AffineTransform transform = new AffineTransform();
         Double[] temp;
         Graphics2D g2d = ( Graphics2D )g;		// get graphics context
-
+        double flipY = scaleMeters[3];//- scaleMeters[1];
         int drawNum = 0;
         //GeneralPath newDraw = new GeneralPath();
         if(!path.isEmpty())
             path.clear();
-        transform.scale( 1.0, -1.0 );
-        //transform.translate(0, (scaleMeters[1]-scaleMeters[0])*scaleFactor);
-        double offset = (scaleMeters[1]-scaleMeters[0])*scaleFactor;
-        g2d.setTransform( transform );
-        g2d.translate(xOffset, -yOffset - 500);
+    
+        g2d.translate(xOffset,yOffset);//(xOffset+300, -yOffset - 750);
         path.add(new GeneralPath());
-        //g2d.setStroke(new BasicStroke(2));
-        //g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        
+
+                
         g2d.setColor(Color.BLACK);
         for(int i = 0; i < points.size(); i++)
         {
             temp = points.get(i);
-            path.get(drawNum).moveTo(temp[0]*scaleFactor,temp[1]*scaleFactor);
+            path.get(drawNum).moveTo((temp[0]-scaleMeters[0])*scaleFactor,(flipY - temp[1])*scaleFactor);
 
             for(int j = 2; j < points.get(i).length;)
             {
-                path.get(drawNum).lineTo(temp[j]*scaleFactor, temp[j+1]*scaleFactor);
+                path.get(drawNum).lineTo((temp[j]-scaleMeters[0])*scaleFactor, (flipY-temp[j+1])*scaleFactor);
                 j+=2;
             }            
         }
@@ -93,25 +99,23 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
             {
                 
                 temp = lines.allPolyPoints.get(i).get(j);
-                if(temp != null && lines.element.get(i) < 8)
+                if(temp != null && lines.element.get(i) < detailLevel)
                 {
-                    path.get(drawNum).moveTo((temp[0]-scaleMeters[0])*scaleFactor, (temp[1]-scaleMeters[1])*scaleFactor);
+                    path.get(drawNum).moveTo((temp[0]-scaleMeters[0])*scaleFactor, (flipY - temp[1])*scaleFactor);
                     for(int k = 2; k < temp.length;)
                     {
-                        path.get(drawNum).lineTo((temp[k]-scaleMeters[0])*scaleFactor , (temp[k+1]-scaleMeters[1])*scaleFactor);
+                        path.get(drawNum).lineTo((temp[k]-scaleMeters[0])*scaleFactor , (flipY - temp[k+1])*scaleFactor);
                         k+=2;
+                        
+                        
+                        
                     }
-                    //path.get(drawNum).closePath();
                 }
             }
-            //newDraw = (GeneralPath) newDraw.clone();
             g2d.draw(path.get(drawNum));
             path.add(new GeneralPath()); 
             drawNum += 1;
         }
-
-        //g2d.setColor(Color.red);
-        //g2d.draw( gp );
     }
 
     // set initial panel size
@@ -145,13 +149,15 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
         Area = Area.replace("  ", " ");
         Area = Area.trim();
         x_y = Area.split(" ");
-        scaleMeters = new Double[2];
-        scaleMeters[0] = 0.0; scaleMeters[1] = 0.0;
-
+        scaleMeters = new Double[4];
+        for(int j = 0; j < 4; j++)
+            scaleMeters[j] = 0.0;
         xyMinMax = getXY(x_y); 
 
-        scaleMeters[0] = xyMinMax[0];
-        scaleMeters[1] = xyMinMax[1];
+        for(int j = 0; j < 4; j++)
+            scaleMeters[j] = xyMinMax[j];
+        
+        
         children = children.get(3).getChildren();
         //Double[] xyPoints;
         ArrayList<Double[]> xyPoints = new ArrayList<Double[]>();
@@ -176,9 +182,9 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
         {
             // need to scale points
             if(i%2 == 0)
-                temp = Double.parseDouble(x_y[i]) - scaleMeters[0];
+                temp = Double.parseDouble(x_y[i]);// - scaleMeters[0];
             else
-                temp = Double.parseDouble(x_y[i]) - scaleMeters[1];
+                temp = Double.parseDouble(x_y[i]);// - scaleMeters[1];
             points[i] = temp;
         }   
         return points;
@@ -253,6 +259,13 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
     }
 
     @Override
+    public void stateChanged(ChangeEvent e)
+    {
+        detailLevel = controller.DetailSlider.getValue();
+        repaint();
+    }
+    
+    @Override
     public void mousePressed(MouseEvent e)
     {
         if(e.getButton() == MouseEvent.BUTTON1)
@@ -273,10 +286,58 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
     @Override
     public void mouseClicked(MouseEvent e)
     {
-       System.out.println("mouse clicked!");
-       if(e.getButton() == 0)
-           ;//xPressed +=
-         return;
+              
+       
+        int numOfRecs = lines.uniqueID.size()-1;
+        String[] recordMin, recordMax;
+        String xyMin, xyMax;
+        Double x1, y1, x2, y2;
+        int x,y;
+        Boolean upLeft = false;
+        Double[] coordinates;
+        for(int i = 0; i < numOfRecs; i++)
+        {
+            if(lines.xymax.get(i) != null)
+            {
+                xyMin = lines.xymin.get(i);
+                xyMax = lines.xymax.get(i);
+                xyMin = xyMin.trim();
+                xyMax = xyMax.trim();
+                xyMin += " ";
+                xyMin += xyMax;
+                recordMin = xyMin.split(" ");
+                recordMax = xyMax.split(" ");
+
+                coordinates = getXY(recordMin);
+
+                coordinates[0] -= scaleMeters[0];
+                coordinates[1] = scaleMeters[3]-coordinates[1];
+                coordinates[2] -= scaleMeters[0];
+                coordinates[3] = scaleMeters[3]-coordinates[3];
+
+
+                coordinates[0] = coordinates[0] * scaleFactor + xOffset;
+                coordinates[1] = coordinates[1] * scaleFactor + yOffset;
+                coordinates[2] = coordinates[2] * scaleFactor + xOffset;
+                coordinates[3] = coordinates[3] * scaleFactor + yOffset;
+
+                //Need to scale 
+                x = e.getX();
+                y = e.getY();
+
+                int currDetailLevel = lines.element.get(i);
+                
+                if((double)x > coordinates[0] && (double)y > coordinates[3] && (double)x < coordinates[2]
+                        && (double)y < coordinates[1] && currDetailLevel < detailLevel)
+                {
+                    System.out.println(lines.uniqueID.get(i));      
+                    break;
+                }
+                else
+                ; // delete bone window in menu pane
+            }
+        }
+                
     }
 
     @Override
@@ -284,22 +345,31 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
     {
         double scaleFactorMultiplier = 1;
         
-        System.out.println("mouse wheel moved!");
+        //System.out.println("mouse wheel moved!");
 //        setZoomFactor(.9);
         int wheelDirection = e.getWheelRotation();
         
         if(wheelDirection < 0)
         {
             zoomLevel++;
-            
             scaleFactorMultiplier = Math.pow(1.1, zoomLevel);
             scaleFactor = 15 * scaleFactorMultiplier;
             
             xOffset = (int)((double)xOffset*1.1);
             yOffset = (int)((double)yOffset*1.1);
             
-            xOffset += (int)((double)e.getX() / (double)scaleFactor);
+            xOffset -= (int)((double)e.getX()/ (double)scaleFactor);
             yOffset += (int)((double)e.getY() / (double)scaleFactor);
+            if(xOffset > 600)//this.getWidth())
+                xOffset = this.getWidth();
+            if(yOffset > 600)//this.getHeight())
+                yOffset = this.getHeight();
+            if(xOffset < 0)
+                xOffset = 0;
+            if(yOffset < 0)
+                yOffset = 0;
+            
+            
         }
         else if(wheelDirection > 0)
         {
@@ -312,7 +382,17 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
             yOffset = (int)((double)yOffset*.909091);
             
             xOffset += (int)((double)e.getX() / (double)scaleFactor);
-            yOffset += (int)((double)e.getY() / (double)scaleFactor);
+            yOffset -= (int)((double)e.getY() / (double)scaleFactor);
+            if(xOffset > this.getWidth())
+                xOffset = this.getWidth();
+            if(yOffset > this.getHeight())
+                yOffset = this.getHeight();
+            if(xOffset < 0)
+                xOffset = 0;
+            if(yOffset < 0)
+                yOffset = 0;
+            System.out.println(this.getWidth());
+            System.out.println(xOffset);
         }
         repaint();
         return;
@@ -321,7 +401,7 @@ public class MapPainter extends JPanel implements MouseWheelListener, MouseListe
     @Override
     public void mouseMoved(MouseEvent e)
     {
-        System.out.println("Mouse moved!");
+
     }
 
 }

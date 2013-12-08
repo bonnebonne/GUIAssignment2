@@ -22,6 +22,7 @@ public class Controller  {
     
     public MapPanel mapPanel;
     public MainFrame frame;
+    public JSlider DetailSlider;
     
     public Controller()
     {    
@@ -31,11 +32,16 @@ public class Controller  {
         //frame.getSize(null)
         //MapPanel mapPanel = new MapPanel();
         MenuPanel menuPanel = new MenuPanel();
-        menuPanel.add(new JSlider());
+        DetailSlider = new JSlider();
+        DetailSlider.setMaximum(16);
+        DetailSlider.setMinimum(1);
+        menuPanel.add(DetailSlider);
+        
         
         //JScrollPane scroller = new JScrollPane(mapPainter);
         //scroller.setPreferredSize(new Dimension(200,200));
         MapPainter mapPainter = new MapPainter();
+        DetailSlider.addChangeListener(mapPainter);
 
         //set up the map panel
         mapPanel = new MapPanel();
@@ -43,6 +49,7 @@ public class Controller  {
         mapPainter.addMouseListener(mapPainter);
         mapPainter.addMouseWheelListener(mapPainter);
         mapPainter.addMouseMotionListener(mapPainter);
+        mapPainter.controller = this;
         frame.addMouseListener(mapPainter);
         frame.addMouseWheelListener(mapPainter);
         frame.setFocusable(true);
