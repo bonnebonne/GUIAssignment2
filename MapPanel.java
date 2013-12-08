@@ -82,17 +82,13 @@ public class MapPanel extends JPanel implements MouseWheelListener, MouseListene
     @Override
     public void mouseClicked(MouseEvent e)
     {
-       System.out.println("mouse clicked!");
-         return;
+
     }
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e)
     {
-        System.out.println("mouse wheel moved!");
-//        setZoomFactor(.9);
-        //scaleFactor = scaleFactor * 1.25
-        return;
+
     }
 } 
 

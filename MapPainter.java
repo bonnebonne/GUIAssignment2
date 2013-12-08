@@ -18,14 +18,12 @@ import org.jdom2.Element;
 public class MapPainter extends JPanel implements MouseWheelListener,
             MouseListener, MouseMotionListener, ChangeListener
 {
-    private GeneralPath gp;
-    private ArrayList<GeneralPath> path;
-    private ArrayList<int[]> DrawObjects;
+    private final GeneralPath gp;
+    private final ArrayList<GeneralPath> path;
     public Double[] scaleMeters;
     public polyLines lines;
     public Controller controller;
     public int detailLevel;
-    //private int drawNum;
     public Double scaleFactor;
     private int xPressed;
     private int yPressed;
@@ -36,28 +34,31 @@ public class MapPainter extends JPanel implements MouseWheelListener,
     
     public MapPainter()
     {
-        // intialize drawing component
+        // intialize class variables
         gp = new GeneralPath();
-        path = new ArrayList<GeneralPath>();
-        toolTip = new JToolTip();
-        DrawObjects = null;
-        // initialize scaleFactor
-        scaleFactor = 15.0;
-        zoomLevel = 0;
-        // initialize class
+        path = new ArrayList<>();
         lines = new polyLines();
         detailLevel = 16;
-        xOffset = 0;
-        yOffset = 0;
-        // get data from xml records
+        scaleFactor = 15.0;
+        toolTip = new JToolTip();
+        xOffset = 50;
+        yOffset = 50;
+        zoomLevel = 0;
+       // get data from xml records
         lines.getBoneRecs();
     }
 
     // paintComponent() is the display callback function
+
+    /**
+     *
+     * @param g
+     */
+        @Override
     public void paintComponent( Graphics g )
     {
         super.paintComponent( g );	// call the base class constructor
-        ArrayList<Double[]> points = new ArrayList<Double[]>();
+        ArrayList<Double[]> points = new ArrayList<>();
         points = getWalkway();
         
         AffineTransform transform = new AffineTransform();
@@ -119,11 +120,17 @@ public class MapPainter extends JPanel implements MouseWheelListener,
     }
 
     // set initial panel size
+    @Override
     public Dimension getPreferredSize ()
     {
         return new Dimension( 320, 320 );
     }
 
+    /**
+     *
+     * @return
+     */
+    @Override
     public Dimension getMinimumSize ()
     {
         return new Dimension(480, 480);//this.getPreferredSize();
@@ -133,16 +140,14 @@ public class MapPainter extends JPanel implements MouseWheelListener,
     {
         XMLParse walkway = new XMLParse("bonexml/walkway.xml");
         Element root;
-        int i = 0, points;
-        Double xmin, ymin, xmax, ymax;
         Double[] xyMinMax;
         String Area;
         String[] x_y;
         if(walkway.getRoot() != null)
             root = walkway.getRoot();
         else root = null;
-        java.util.List<Element> path = root.getChildren("xml");
-        points = path.size();
+//        java.util.List<Element> walkwayPath;
+//        walkwayPath = root.getChildren("xml");
         java.util.List<Element> children = root.getChildren();
         Area = children.get(1).getValue();
         Area = Area.concat(children.get(2).getValue());
@@ -153,16 +158,14 @@ public class MapPainter extends JPanel implements MouseWheelListener,
         for(int j = 0; j < 4; j++)
             scaleMeters[j] = 0.0;
         xyMinMax = getXY(x_y); 
-
-        for(int j = 0; j < 4; j++)
-            scaleMeters[j] = xyMinMax[j];
+        System.arraycopy(xyMinMax, 0, scaleMeters, 0, 4);
         
         
         children = children.get(3).getChildren();
         //Double[] xyPoints;
-        ArrayList<Double[]> xyPoints = new ArrayList<Double[]>();
+        ArrayList<Double[]> xyPoints = new ArrayList<>();
         
-        for(i = 5; i < children.size(); i++)
+        for(int i = 5; i < children.size(); i++)
         {
             Area = children.get(i).getValue();
             Area = Area.replace("\n", "");
@@ -243,13 +246,13 @@ public class MapPainter extends JPanel implements MouseWheelListener,
         @Override
     public void mouseExited(MouseEvent e)
     {
-         return;
+        
     }
 
     @Override
     public void mouseEntered(MouseEvent e)
     {
-         return;
+         
     }
 
     @Override
@@ -277,10 +280,9 @@ public class MapPainter extends JPanel implements MouseWheelListener,
     @Override
     public void mouseDragged(MouseEvent e)
     {
-        //System.out.println("Mouse Dragged!");
         xOffset = e.getX()-xPressed;
         yOffset = e.getY()-yPressed;
-
+       
         repaint();
     }
     @Override
@@ -295,10 +297,19 @@ public class MapPainter extends JPanel implements MouseWheelListener,
         int x,y;
         Boolean upLeft = false;
         Double[] coordinates;
+        
+        // the purpose of this loop is to see if a bone was click on
+        // in the map panel. Scaling and offsetting is done to get the position
+        // of the bones realtive to the mouse click.
+        // each bone record must be individually checked if it has been clicked
+        // on every time there is a click event. However the function
+        // exits once it finds a match to prevent getting multiple results from
+        // one click.
         for(int i = 0; i < numOfRecs; i++)
         {
             if(lines.xymax.get(i) != null)
             {
+                // get xy min and max, then parse into array of strings.
                 xyMin = lines.xymin.get(i);
                 xyMax = lines.xymax.get(i);
                 xyMin = xyMin.trim();
@@ -307,26 +318,37 @@ public class MapPainter extends JPanel implements MouseWheelListener,
                 xyMin += xyMax;
                 recordMin = xyMin.split(" ");
                 recordMax = xyMax.split(" ");
-
+                
+                // call function that given array of strings, returns array of
+                // doubles with the x coordinates in the even indices and
+                // y coordinates in the odd indices.
                 coordinates = getXY(recordMin);
 
+                // scale coordinates, the odd coordinates (y min and max)
+                // must be scaled so as to invert ther position, essentially
+                // vertically flip the y coordintas. The x coordinates are 
+                // scaled down like other points.
                 coordinates[0] -= scaleMeters[0];
                 coordinates[1] = scaleMeters[3]-coordinates[1];
                 coordinates[2] -= scaleMeters[0];
                 coordinates[3] = scaleMeters[3]-coordinates[3];
-
-
+                
+                // now that the min and max coordinates are scaled, they are now
+                // scaled and offset to the same scale and offset as the items
+                // that where drawn on the panel.
                 coordinates[0] = coordinates[0] * scaleFactor + xOffset;
                 coordinates[1] = coordinates[1] * scaleFactor + yOffset;
                 coordinates[2] = coordinates[2] * scaleFactor + xOffset;
                 coordinates[3] = coordinates[3] * scaleFactor + yOffset;
 
-                //Need to scale 
+                
                 x = e.getX();
                 y = e.getY();
 
                 int currDetailLevel = lines.element.get(i);
                 
+                // check to see if the mouse click is within the area of a bone
+                // on the map panel.
                 if((double)x > coordinates[0] && (double)y > coordinates[3] && (double)x < coordinates[2]
                         && (double)y < coordinates[1] && currDetailLevel < detailLevel)
                 {
@@ -343,10 +365,8 @@ public class MapPainter extends JPanel implements MouseWheelListener,
     @Override
     public void mouseWheelMoved(MouseWheelEvent e)
     {
-        double scaleFactorMultiplier = 1;
-        
-        //System.out.println("mouse wheel moved!");
-//        setZoomFactor(.9);
+        double scaleFactorMultiplier;
+        double x = e.getX(), y = e.getY();
         int wheelDirection = e.getWheelRotation();
         
         if(wheelDirection < 0)
@@ -355,47 +375,45 @@ public class MapPainter extends JPanel implements MouseWheelListener,
             scaleFactorMultiplier = Math.pow(1.1, zoomLevel);
             scaleFactor = 15 * scaleFactorMultiplier;
             
-            xOffset = (int)((double)xOffset*1.1);
-            yOffset = (int)((double)yOffset*1.1);
-            
-            xOffset -= (int)((double)e.getX()/ (double)scaleFactor);
-            yOffset += (int)((double)e.getY() / (double)scaleFactor);
-            if(xOffset > 600)//this.getWidth())
-                xOffset = this.getWidth();
-            if(yOffset > 600)//this.getHeight())
-                yOffset = this.getHeight();
-            if(xOffset < 0)
-                xOffset = 0;
-            if(yOffset < 0)
-                yOffset = 0;
-            
+            xOffset += (x - x*1.1)*scaleFactorMultiplier;
+            yOffset += (y - y*1.1)*scaleFactorMultiplier;
+            System.out.println(xOffset);
+            System.out.println(yOffset);
+
+//            if(xOffset > 2*scaleFactor*(scaleMeters[2]-scaleMeters[0]))//this.getWidth())
+//              xOffset = (int) (2.0*scaleFactor*(scaleMeters[2]-scaleMeters[0]));
+//            if(yOffset > 2*scaleFactor*(scaleMeters[3]-scaleMeters[1]))//this.getHeight())
+//                yOffset = (int) (2.0*scaleFactor*(scaleMeters[3]-scaleMeters[1]));//this.getHeight();  
+//            if(xOffset < -1.0*scaleFactor*(scaleMeters[2]-scaleMeters[0]))//this.getWidth())
+//              xOffset = (int) (-1.0*scaleFactor*(scaleMeters[2]-scaleMeters[0]));
+//            if(yOffset < -1.0*scaleFactor*(scaleMeters[3]-scaleMeters[1]))//this.getHeight())
+//                yOffset = (int) (-1.0*scaleFactor*(scaleMeters[3]-scaleMeters[1]));//this.getHeight();
+      
             
         }
-        else if(wheelDirection > 0)
+        else if(wheelDirection > 0 )
         {
             zoomLevel--;
             
             scaleFactorMultiplier = Math.pow(1.1, zoomLevel);
             scaleFactor = 15 * scaleFactorMultiplier;
             
-            xOffset = (int)((double)xOffset*.909091);
-            yOffset = (int)((double)yOffset*.909091);
-            
-            xOffset += (int)((double)e.getX() / (double)scaleFactor);
-            yOffset -= (int)((double)e.getY() / (double)scaleFactor);
-            if(xOffset > this.getWidth())
-                xOffset = this.getWidth();
-            if(yOffset > this.getHeight())
-                yOffset = this.getHeight();
-            if(xOffset < 0)
-                xOffset = 0;
-            if(yOffset < 0)
-                yOffset = 0;
-            System.out.println(this.getWidth());
-            System.out.println(xOffset);
+//            xOffset = (int)((double)xOffset*.909091);
+//            yOffset = (int)((double)yOffset*.909091);
+            xOffset += (x - x/1.1)*scaleFactorMultiplier;
+            yOffset += (y - y/1.1)*scaleFactorMultiplier;
+//            xOffset += (int)((double)e.getX() / (double)scaleFactor);
+//            yOffset -= (int)((double)e.getY() / (double)scaleFactor);
+//            if(xOffset < 2.0*scaleFactor*(scaleMeters[2]-scaleMeters[0]))//this.getWidth())
+//              xOffset = (int) (2.0*scaleFactor*(scaleMeters[2]-scaleMeters[0]));
+//            if(yOffset < 2.0*scaleFactor*(scaleMeters[3]-scaleMeters[1]))//this.getHeight())
+//                yOffset = (int) (2.0*scaleFactor*(scaleMeters[3]-scaleMeters[1]));//this.getHeight();
+//            if(xOffset < -1.0*scaleFactor*(scaleMeters[2]-scaleMeters[0]))//this.getWidth())
+//              xOffset = (int) (-1.0*scaleFactor*(scaleMeters[2]-scaleMeters[0]));
+//            if(yOffset < -1.0*scaleFactor*(scaleMeters[3]-scaleMeters[1]))//this.getHeight())
+//                yOffset = (int) (-1.0*scaleFactor*(scaleMeters[3]-scaleMeters[1]));//this.getHeight();
         }
         repaint();
-        return;
     }
     
     @Override

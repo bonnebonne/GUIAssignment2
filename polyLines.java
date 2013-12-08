@@ -19,7 +19,7 @@ import guiassignment2.MapPainter;
 public class polyLines
 {
     
-    // stores a bone records poly lines
+    // stores a bone record data elements
         public ArrayList<String> xymin;
         public ArrayList<String> xymax;
         public ArrayList<String> uniqueID;
@@ -45,45 +45,43 @@ public class polyLines
     // then it calls getBoneRecs to get all bone record poly lines
     public  polyLines()
     {
-        xymin = new ArrayList<String>();
-        xymax = new ArrayList<String>();
-        uniqueID = new ArrayList<String>();
-        objectnum = new ArrayList<Integer>();
-        taxon = new ArrayList<String>();
-        element = new ArrayList<Integer>();
-        subElement = new ArrayList<String>();
-        side = new ArrayList<String>();
-        completeness = new ArrayList<String>();
-        expside = new ArrayList<String>();
-        articulate = new ArrayList<String>();
-        gender = new ArrayList<String>();
-        datefound = new ArrayList<String>();
-        elevation = new ArrayList<Double>();
-        objectid = new ArrayList<Integer>();
-        shapelength = new ArrayList<Double>();
-        allPolyPoints = new ArrayList<ArrayList<Double[]>>(); 
+        // initialize class variables
+        xymin = new ArrayList<>();
+        xymax = new ArrayList<>();
+        uniqueID = new ArrayList<>();
+        objectnum = new ArrayList<>();
+        taxon = new ArrayList<>();
+        element = new ArrayList<>();
+        subElement = new ArrayList<>();
+        side = new ArrayList<>();
+        completeness = new ArrayList<>();
+        expside = new ArrayList<>();
+        articulate = new ArrayList<>();
+        gender = new ArrayList<>();
+        datefound = new ArrayList<>();
+        elevation = new ArrayList<>();
+        objectid = new ArrayList<>();
+        shapelength = new ArrayList<>();
+        allPolyPoints = new ArrayList<>(); 
 
     }
-    
-    public class boneDetails
-    {
-
-        
-    }
-    // iteratives through each record id in bones.xml, finds the records
-    // files, and stores the polyline elements
+   /* 
+    this function is iterates through all the bone records listed in bones.xml.
+    It then opens up the corresponding bone record xml file. There are 352 valid
+    bone record files.
+    It iteratives through each record id in bones.xml, finds the records
+    files, and stores the polyline elements as well as all other record info.
+    */
     public void getBoneRecs()
     {
         polyLines line = new polyLines();
-       XMLParse BoneRecs = new XMLParse("bonexml/bones.xml");
-       Element root = BoneRecs.getRoot();
-//       ArrayList<ArrayList<Double[]>> allPolyPoints
-//               = new ArrayList<ArrayList<Double[]>>();
+        XMLParse BoneRecs = new XMLParse("bonexml/bones.xml");
+        Element root = BoneRecs.getRoot();
+
        bonerecs = root.getChildren("bonerec");
        //polyLines rec = new polyLines();
        Element record;
        Element boneRec;
-       int importance;
        for(int i = 0; i < bonerecs.size(); i++)
        {
            record = bonerecs.get(i).clone();
@@ -103,9 +101,10 @@ public class polyLines
            shapelength.add(Double.parseDouble(record.getChildTextTrim("shapelength")));
            XMLParse bone  = new XMLParse("bonexml/" + uniqueID.get(i) + ".xml");
            boneRec = bone.getRoot();
-           // if the xml file reference from 'bones.xml' does not exist, the
-           // loop is broken since 'getChildTextTrim' method will throw
-           // an exception if boneRec is null
+           // the reference to a bone record xml file from  bones.xml  has just
+           // tried to open. If the bone record that we tried to open doesn't 
+           // exist, this if statement prevents the program from crashing as 
+           // getting a null child is illegal.
            if(boneRec != null)
            {
                 xymin.add(boneRec.getChildTextTrim("xymin"));
@@ -119,17 +118,20 @@ public class polyLines
     {
         String[] numbers;
         String numStr;
-        Double[] points;
-        int npolylines;
-        Double x, y;
-
+        
         // get list of children
-        List<Element> children = current.getChildren("polyline");
-        // get iterator for recurion base case
-        Iterator iterator = children.iterator();
+        List<Element> children;
         children = current.getChildren();
+        // get child that has poly line points
         children = children.get(3).getChildren("polyline");
-        ArrayList<Double[]> xyPoints = new ArrayList<Double[]>();
+        ArrayList<Double[]> xyPoints = new ArrayList<>();
+        
+        // this for loop gets the values of a poly line in a 
+        // bone record as a long string. From here these strings are split and
+        // all non numerical characters are removed. After that, the string
+        // is split int individual strings that each contain either an x or y
+        // point. All x points are in the even indices and all y points are
+        // in the odd indices. 
         for(int i = 0; i < children.size(); i++)
         {
             numStr = children.get(i).getValue();
@@ -137,26 +139,25 @@ public class polyLines
             numStr = numStr.replace("  ", " ");
             numStr = numStr.trim();
             numbers = numStr.split(" ");
+            // getPolyPoints is a function that given an array of strings,
+            // it parses those strings into doubles which are then stored
             xyPoints.add(getPolyPoints(numbers));
         }
         return xyPoints;
     }
     
-
+/* this function given an array of strings, parses those strings into integers
+    and stores them in an array of doubles which are returned from the function.
+    */
     private Double[] getPolyPoints(String[] x_y)
     {
         Double[] points = new Double[x_y.length];
         Double temp;
         for(int i = 0; i < x_y.length; i++)
         {
-            // need to scale points
-            if(i%2 == 0)
-                temp = Double.parseDouble(x_y[i]);// - scaleMeters[0];
-            else
-                temp = Double.parseDouble(x_y[i]);// - scaleMeters[1];
+            temp = Double.parseDouble(x_y[i]);
             points[i] = temp;
         }   
         return points;
     }
 }
-

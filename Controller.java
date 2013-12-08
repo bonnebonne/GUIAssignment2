@@ -29,27 +29,36 @@ public class Controller  {
       
         //set up the main frame and menu panel
         frame = new MainFrame();
-        //frame.getSize(null)
-        //MapPanel mapPanel = new MapPanel();
+        
+        // create menu panel
         MenuPanel menuPanel = new MenuPanel();
+        //set menu panels layout 
+        menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
+        
+        // add label to menu panel
+        JLabel label = new JLabel("Detail");
+        menuPanel.add(label);
+        
+        // add detail slider to menu panel
         DetailSlider = new JSlider();
         DetailSlider.setMaximum(16);
         DetailSlider.setMinimum(1);
         menuPanel.add(DetailSlider);
         
-        
-        //JScrollPane scroller = new JScrollPane(mapPainter);
-        //scroller.setPreferredSize(new Dimension(200,200));
+        // make map Painter(panel) listen to DetailSlider
         MapPainter mapPainter = new MapPainter();
         DetailSlider.addChangeListener(mapPainter);
 
-        //set up the map panel
+        //set up the map panel with map painter nested in it
         mapPanel = new MapPanel();
+        
+        // make map panel focusable and and listeners and events
         mapPainter.setFocusable(true);
         mapPainter.addMouseListener(mapPainter);
         mapPainter.addMouseWheelListener(mapPainter);
         mapPainter.addMouseMotionListener(mapPainter);
         mapPainter.controller = this;
+        // add map panel to main frame
         frame.addMouseListener(mapPainter);
         frame.addMouseWheelListener(mapPainter);
         frame.setFocusable(true);
@@ -58,25 +67,18 @@ public class Controller  {
         mapPanel.add(mapPainter);
         
         menuPanel.setBackground(Color.LIGHT_GRAY);
-        //scroller.setPreferredSize(new Dimension(6000, 6000));
         frame.setTitle("Mammoth Site");
         frame.setLayout(new BorderLayout());
 
-        //mapPainter.setPreferredSize(new Dimension(10, 10));
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new ScrollPaneLayout());
      
         frame.getContentPane().add(menuPanel, BorderLayout.WEST);
         frame.getContentPane().add(mapPainter, BorderLayout.CENTER);
-        frame.setSize(1200, 800);
+        frame.setSize(1200, 720);
         frame.setLocationRelativeTo(null); // Center window in center of screen
-        // pass into mapPanel
-        frame.setVisible(true);
-        //scroller.setVisible(true);
-        // add drawings and menu to Panels
-        //mapPanel.setVisible(true);
-        //menuPanel.setVisible(true);
         
-    }
-    
-    }
+        // make contents of main frame visible
+        frame.setVisible(true);     
+    }    
+}

@@ -7,6 +7,7 @@
 package guiassignment2;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  *
@@ -14,5 +15,9 @@ import javax.swing.*;
  */
 public class MenuPanel extends JPanel{
     //MapPainter pnt = new MapPainter();
+    public MenuPanel()
+    {
+        
+    }        
     
 }
