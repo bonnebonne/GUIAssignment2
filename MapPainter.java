@@ -31,9 +31,14 @@ public class MapPainter extends JPanel implements MouseWheelListener,
     private int yOffset;
     private int zoomLevel;
     private JToolTip toolTip;
+    public String activeBone;
+    private Boolean wheelDebouncerOn; 
     
     public MapPainter()
     {
+        // set map background color
+        this.setBackground(Color.white);
+        
         // intialize class variables
         gp = new GeneralPath();
         path = new ArrayList<>();
@@ -44,8 +49,10 @@ public class MapPainter extends JPanel implements MouseWheelListener,
         xOffset = 50;
         yOffset = 50;
         zoomLevel = 0;
+        activeBone = "";
        // get data from xml records
         lines.getBoneRecs();
+        wheelDebouncerOn = true;
     }
 
     // paintComponent() is the display callback function
@@ -96,6 +103,11 @@ public class MapPainter extends JPanel implements MouseWheelListener,
         for(int i = 0 ; i < lines.allPolyPoints.size(); i++)
         {
             g2d.setColor(setElevationColor(lines.elevation.get(i)));
+            if(activeBone.equals(lines.uniqueID.get(i)))
+            {
+                g2d.setColor(Color.magenta);
+                g2d.setStroke(new BasicStroke(2));
+            }
             for(int j = 0; j < lines.allPolyPoints.get(i).size(); j++)
             {
                 
@@ -114,6 +126,7 @@ public class MapPainter extends JPanel implements MouseWheelListener,
                 }
             }
             g2d.draw(path.get(drawNum));
+            g2d.setStroke(new BasicStroke(1));
             path.add(new GeneralPath()); 
             drawNum += 1;
         }
@@ -288,8 +301,6 @@ public class MapPainter extends JPanel implements MouseWheelListener,
     @Override
     public void mouseClicked(MouseEvent e)
     {
-              
-       
         int numOfRecs = lines.uniqueID.size()-1;
         String[] recordMin, recordMax;
         String xyMin, xyMax;
@@ -305,10 +316,12 @@ public class MapPainter extends JPanel implements MouseWheelListener,
         // on every time there is a click event. However the function
         // exits once it finds a match to prevent getting multiple results from
         // one click.
+        String lastBone = activeBone;
         for(int i = 0; i < numOfRecs; i++)
         {
             if(lines.xymax.get(i) != null)
             {
+                activeBone = "";
                 // get xy min and max, then parse into array of strings.
                 xyMin = lines.xymin.get(i);
                 xyMax = lines.xymax.get(i);
@@ -349,17 +362,23 @@ public class MapPainter extends JPanel implements MouseWheelListener,
                 
                 // check to see if the mouse click is within the area of a bone
                 // on the map panel.
-                if((double)x > coordinates[0] && (double)y > coordinates[3] && (double)x < coordinates[2]
-                        && (double)y < coordinates[1] && currDetailLevel < detailLevel)
+                if((double)x > coordinates[0] 
+                        && (double)y > coordinates[3] 
+                        && (double)x < coordinates[2]
+                        && (double)y < coordinates[1] 
+                        && currDetailLevel < detailLevel
+                        && !(lastBone.equals(lines.uniqueID.get(i))))
                 {
-                    System.out.println(lines.uniqueID.get(i));      
+                    activeBone = lines.uniqueID.get(i);
+                    lastBone = lines.uniqueID.get(i);
+                    controller.showBoneInfo(activeBone);
                     break;
                 }
                 else
-                ; // delete bone window in menu pane
+                    controller.menuPanel.infoPanel.setVisible(false);
             }
         }
-                
+        repaint();       
     }
 
     @Override
@@ -368,58 +387,70 @@ public class MapPainter extends JPanel implements MouseWheelListener,
         double scaleFactorMultiplier;
         double x = e.getX(), y = e.getY();
         int wheelDirection = e.getWheelRotation();
-        
-        if(wheelDirection < 0)
+        if(wheelDebouncerOn == true)
         {
-            zoomLevel++;
-            scaleFactorMultiplier = Math.pow(1.1, zoomLevel);
-            scaleFactor = 15 * scaleFactorMultiplier;
-            
-            xOffset += (x - x*1.1)*scaleFactorMultiplier;
-            yOffset += (y - y*1.1)*scaleFactorMultiplier;
-            System.out.println(xOffset);
-            System.out.println(yOffset);
+            if(wheelDirection < 0)
+            {
 
-//            if(xOffset > 2*scaleFactor*(scaleMeters[2]-scaleMeters[0]))//this.getWidth())
-//              xOffset = (int) (2.0*scaleFactor*(scaleMeters[2]-scaleMeters[0]));
-//            if(yOffset > 2*scaleFactor*(scaleMeters[3]-scaleMeters[1]))//this.getHeight())
-//                yOffset = (int) (2.0*scaleFactor*(scaleMeters[3]-scaleMeters[1]));//this.getHeight();  
-//            if(xOffset < -1.0*scaleFactor*(scaleMeters[2]-scaleMeters[0]))//this.getWidth())
-//              xOffset = (int) (-1.0*scaleFactor*(scaleMeters[2]-scaleMeters[0]));
-//            if(yOffset < -1.0*scaleFactor*(scaleMeters[3]-scaleMeters[1]))//this.getHeight())
-//                yOffset = (int) (-1.0*scaleFactor*(scaleMeters[3]-scaleMeters[1]));//this.getHeight();
-      
-            
+                if(zoomLevel < 40)
+                    zoomLevel++;
+                else return;
+
+                scaleFactorMultiplier = Math.pow(1.1, zoomLevel);
+                scaleFactor = 15 * scaleFactorMultiplier;
+
+                xOffset += (x - x*1.1)*scaleFactorMultiplier;
+                yOffset += (y - y*1.1)*scaleFactorMultiplier;
+                System.out.println("zoom in");
+                System.out.println(xOffset);
+                System.out.println(yOffset);       
+            }
+            else if(wheelDirection > 0 )
+            {
+                
+                if(zoomLevel > -15)
+                    zoomLevel--;
+                else return;
+                    
+                scaleFactorMultiplier = Math.pow(1.1, zoomLevel);
+                scaleFactor = 15 * scaleFactorMultiplier;
+
+    //            xOffset = (int)((double)xOffset*.909091);
+    //            yOffset = (int)((double)yOffset*.909091);
+                xOffset -= (x/1.1-x)*scaleFactorMultiplier;
+                yOffset -= (y/1.1-y)*scaleFactorMultiplier;
+
+               
+                System.out.println("zoom out");
+                System.out.println(xOffset);
+                System.out.println(yOffset);      
+            }
+          if(xOffset > scaleFactor*(scaleMeters[2]-scaleMeters[0]))//this.getWidth())
+            xOffset = (int) (scaleFactor*(scaleMeters[2]-scaleMeters[0]) - 2.0*scaleFactor);
+          if(yOffset > scaleFactor*(scaleMeters[3]-scaleMeters[1]) - 2.0 * scaleFactor)//this.getHeight())
+              yOffset = (int) (scaleFactor*(scaleMeters[3]-scaleMeters[1]));//this.getHeight();
+          if(xOffset < -1.0*scaleFactor*(scaleMeters[2]-scaleMeters[0]))//this.getWidth())
+            xOffset = (int) (-1.0*scaleFactor*(scaleMeters[2]-scaleMeters[0]) + 2.0 * scaleFactor);
+          if(yOffset < -1.0*scaleFactor*(scaleMeters[3]-scaleMeters[1]))//this.getHeight())
+              yOffset = (int) (-1.0*scaleFactor*(scaleMeters[3]-scaleMeters[1])+2.0*scaleFactor);//this.getHeight();
+            repaint();
         }
-        else if(wheelDirection > 0 )
-        {
-            zoomLevel--;
-            
-            scaleFactorMultiplier = Math.pow(1.1, zoomLevel);
-            scaleFactor = 15 * scaleFactorMultiplier;
-            
-//            xOffset = (int)((double)xOffset*.909091);
-//            yOffset = (int)((double)yOffset*.909091);
-            xOffset += (x - x/1.1)*scaleFactorMultiplier;
-            yOffset += (y - y/1.1)*scaleFactorMultiplier;
-//            xOffset += (int)((double)e.getX() / (double)scaleFactor);
-//            yOffset -= (int)((double)e.getY() / (double)scaleFactor);
-//            if(xOffset < 2.0*scaleFactor*(scaleMeters[2]-scaleMeters[0]))//this.getWidth())
-//              xOffset = (int) (2.0*scaleFactor*(scaleMeters[2]-scaleMeters[0]));
-//            if(yOffset < 2.0*scaleFactor*(scaleMeters[3]-scaleMeters[1]))//this.getHeight())
-//                yOffset = (int) (2.0*scaleFactor*(scaleMeters[3]-scaleMeters[1]));//this.getHeight();
-//            if(xOffset < -1.0*scaleFactor*(scaleMeters[2]-scaleMeters[0]))//this.getWidth())
-//              xOffset = (int) (-1.0*scaleFactor*(scaleMeters[2]-scaleMeters[0]));
-//            if(yOffset < -1.0*scaleFactor*(scaleMeters[3]-scaleMeters[1]))//this.getHeight())
-//                yOffset = (int) (-1.0*scaleFactor*(scaleMeters[3]-scaleMeters[1]));//this.getHeight();
-        }
-        repaint();
+        wheelDebouncerOn = !wheelDebouncerOn;
     }
     
     @Override
     public void mouseMoved(MouseEvent e)
     {
 
+    }
+    
+    public void resetView()
+    {
+        xOffset = 50;
+        yOffset = 50;
+        zoomLevel = 0;
+        scaleFactor = 15.0;
+        repaint();
     }
 
 }
