@@ -1,10 +1,6 @@
-// GeneralPathPanel.java
-// Simple program illustrating graphics programming in Java.
-// JMW 081031
 
 package guiassignment2;
 
-//import  guiassignment2.XMLParse.listChildren;
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
@@ -14,38 +10,104 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jdom2.Element;
 
-
+/** 
+ *  The MapPainter class does the heavy lifting for drawing all the components
+ * on the MapPanel. It also implements mouse wheel zooming event handlers,
+ * mouse click handlers, mouse drag handlers and mouser pressed handlers.
+ * It calls the polyLines class which retrieves all the points that make
+ * up the bones. 
+ * polyLines does not handle getting the walkway points that
+ * make up the walkway. The points that make up the walk way are retrieved
+ * by this MapPainter class.
+ * 
+ * @author Benjamin Sherman, Derek Stotz
+ */
 public class MapPainter extends JPanel implements MouseWheelListener,
             MouseListener, MouseMotionListener, ChangeListener
 {
-    private final GeneralPath gp;
+    /** 
+     * This array of GeneralPaths is necessary to draw the bones in different
+     * colors. When a new bone is drawn, a new GeneralPath is appended to this
+     * array.
+     */
     private final ArrayList<GeneralPath> path;
-    public Double[] scaleMeters;
+    /** 
+     * An array of size four that contains x min in spot 0, y min in spot 1
+     * x max in spot 2, and y max in spot 3. This is used to scale down the 
+     * points read from the xml files that are drawn with paintComponent.
+     */
+    private Double[] scaleMeters;
+    /** 
+     * Contains all the information about each bone. It contains the information
+     * that is shown in the left pane of the GUI when a bone is clicked on and
+     * highlighted.
+     */
     public polyLines lines;
+    /** 
+     * Used to get reference to the controller so that the detail slider signal
+     * can be handled within this class.
+     */
     public Controller controller;
+    /** 
+     * This is necessary for the detail slider so that it can be accessed and
+     * changed outside of the MapPainter class.
+     */
     public int detailLevel;
+    /** 
+     * Controls the zoom level of the mammoth site map.
+     */
     public Double scaleFactor;
+    /** 
+     * Stores the the x position of the mouse when it is pressed.
+     */
     private int xPressed;
+    /** 
+     * Stores the y position of the mouse when it is pressed.
+     */
     private int yPressed;
+    
+    /** 
+     * Used to position the mammoth site map when it is dragged or when the
+     * zoom level is changed. This influences the horizontal offset.
+     */
     private int xOffset;
+    /** 
+     * Used to position the mammoth site map when it is dragged or when the
+     * zoom level is changed. This influences the vertical offset.
+     */
     private int yOffset;
+    /** 
+     * Determines how far in or out the mammoth site map is zoomed.
+     */
     private int zoomLevel;
-    private JToolTip toolTip;
+    
+    /** 
+     * This variable is initially an empty string. It is set to a unique id
+     * of a bone record that is selected by the user on the mammoth site map
+     * with a mouse click.
+     */
     public String activeBone;
+    
+    /** This is used to prevent the mammoth site map being zoomed in on twice
+     * for a a mouse wheel moved event. For some reason when the mouse wheel
+     * is moved it triggers the mouse wheel moved event twice.
+     */
     private Boolean wheelDebouncerOn; 
     
+    /** 
+     * The MapPainter constructor initializes all the necessary class variables.
+     * It uses the polyLines class to initialize the class variable lines.
+     */
     public MapPainter()
     {
         // set map background color
         this.setBackground(Color.white);
         
         // intialize class variables
-        gp = new GeneralPath();
         path = new ArrayList<>();
         lines = new polyLines();
         detailLevel = 16;
-        scaleFactor = 15.0;
-        toolTip = new JToolTip();
+        scaleFactor = 12.5;
         xOffset = 50;
         yOffset = 50;
         zoomLevel = 0;
@@ -55,17 +117,27 @@ public class MapPainter extends JPanel implements MouseWheelListener,
         wheelDebouncerOn = true;
     }
 
-    // paintComponent() is the display callback function
-
-    /**
+    /** 
+     * This overriden function of paintComponent is customized to cycle through
+     * the list of points for each bone and draw them on the MapPanel. It
+     * also allows different bones to be drawn different colors. This function
+     * also access the class detailLevel variable. If a bones element value
+     * is greater than the detail value, it is not drawn. The smaller the 
+     * detail level the higher the importance of the bones. Bones that are less
+     * than the detail level are drawn.
      *
-     * @param g
+     * paintComponent is also in charge of highlighting a selected bone record
+     * magenta if it is selected by the user.
+     * 
+     * @param g - passed in by the system, it is what is essentially drawn to.
+     * Once it is drawn to, it is shown on the component of the program that
+     * invoked paintComonent.
      */
         @Override
     public void paintComponent( Graphics g )
     {
         super.paintComponent( g );	// call the base class constructor
-        ArrayList<Double[]> points = new ArrayList<>();
+        ArrayList<Double[]> points;// = new ArrayList<>();
         points = getWalkway();
         
         AffineTransform transform = new AffineTransform();
@@ -102,12 +174,13 @@ public class MapPainter extends JPanel implements MouseWheelListener,
 
         for(int i = 0 ; i < lines.allPolyPoints.size(); i++)
         {
-            g2d.setColor(setElevationColor(lines.elevation.get(i)));
             if(activeBone.equals(lines.uniqueID.get(i)))
             {
                 g2d.setColor(Color.magenta);
                 g2d.setStroke(new BasicStroke(2));
             }
+            else
+                g2d.setColor(setElevationColor(lines.elevation.get(i)));
             for(int j = 0; j < lines.allPolyPoints.get(i).size(); j++)
             {
                 
@@ -132,23 +205,17 @@ public class MapPainter extends JPanel implements MouseWheelListener,
         }
     }
 
-    // set initial panel size
-    @Override
-    public Dimension getPreferredSize ()
-    {
-        return new Dimension( 320, 320 );
-    }
 
-    /**
-     *
-     * @return
+
+
+    /** 
+     * This function retrieves the points that makeup the walkway path. The
+     * points obtained by this function are used to draw the walkway using
+     * paintComponent. 
+     * 
+     * @return xyPoints - xyPoints is a list of all the points that makeup
+     * the walkway path that is drawn with painComponent.
      */
-    @Override
-    public Dimension getMinimumSize ()
-    {
-        return new Dimension(480, 480);//this.getPreferredSize();
-    }
-    
     private ArrayList<Double[]> getWalkway()
     {
         XMLParse walkway = new XMLParse("bonexml/walkway.xml");
@@ -189,7 +256,20 @@ public class MapPainter extends JPanel implements MouseWheelListener,
         }        
         return xyPoints;
     }
-
+    
+    /** 
+     * This function is given an array of strings. Each string in the array
+     * represents a Double type value which is parsed into a Double. Once a
+     * string in the string array x_y is parsed into a Double it is then stored
+     * in an array of Doubles called points. This function is for general
+     * purposes and is used in a variety of situations.
+     * 
+     * @param x_y an array of strings that is to be converted to an array of
+     * Doubles.
+     * 
+     * @return points - contains an array of Doubles that where derived from
+     * the array of strings x_y.
+     */
     private Double[] getXY(String[] x_y)
     {
         Double[] points = new Double[x_y.length];
@@ -206,6 +286,14 @@ public class MapPainter extends JPanel implements MouseWheelListener,
         return points;
     }
     
+    /** 
+     * This function returns a color based on the value of elevation.
+     * The purpose for this is to draw the different bones different colors
+     * based on elevation.
+     * 
+     * @param elevation the elevation of a bone.
+     * @return 
+     */
     private Color setElevationColor(double elevation)
     {
         Color val;
@@ -225,55 +313,49 @@ public class MapPainter extends JPanel implements MouseWheelListener,
             val = Color.pink;
         return val;
     }
-    private Point getViewCenter() {
-        JViewport vp = (JViewport)this.getParent();
-        Point p = vp.getViewPosition();
-        return new Point(p.x + vp.getWidth()/2, p.y + vp.getHeight()/2);
 
-//        
-//        scrolRect        
-    }
     
-    private void setViewCenter(Point p) 
-    {
-        JViewport vp = (JViewport) this.getParent();  
-        Rectangle viewRect = vp.getViewRect();
-        
-        viewRect.x = p.x - viewRect.width/2;
-        viewRect.y = p.y - viewRect.height/2;
-        
-        scrollRectToVisible(viewRect);
-    }
-    
-    public void setZoomFactor(double zoom)
-    {
-        Point center = getViewCenter();
-        
-        Dimension dim = this.getSize();
-        dim = new Dimension((int)(dim.width*zoom), (int)(dim.height*zoom));
-        
-        this.setPreferredSize(dim);
-        this.setViewCenter(center);
-    }
-    
+
+    /**
+     * Because MouseListener is implemented in this class, this function has to
+     * be overriden, though it doesn't do anything.
+     * @param e event parameter.
+     */
         @Override
     public void mouseExited(MouseEvent e)
     {
         
     }
 
+    /**
+     * Because MouseListener is implemented in this class, this function has to
+     * be overriden, though it doesn't do anything.
+     * @param e event parameter.
+     */
     @Override
     public void mouseEntered(MouseEvent e)
     {
          
     }
-
+    
+    /**
+     * Because MouseListener is implemented in this class, this function has to
+     * be overriden, though it doesn't do anything.
+     * @param e event parameter.
+     */
     @Override
     public void mouseReleased(MouseEvent e)
     {
 
     }
 
+    /** 
+     * This function has been overriden to set the class member variable detail
+     * level when a signal is sent that the slider on the MenuPanel. It sets
+     * detailLevel to that the slider is set at.
+
+     * @param e event parameter.
+     */
     @Override
     public void stateChanged(ChangeEvent e)
     {
@@ -281,6 +363,11 @@ public class MapPainter extends JPanel implements MouseWheelListener,
         repaint();
     }
     
+    /**
+     * Saves the position of the mouse when it is pressed with the offset
+     * of the mammoth site map taken into account.
+     * @param e event parameter.
+     */
     @Override
     public void mousePressed(MouseEvent e)
     {
@@ -290,6 +377,17 @@ public class MapPainter extends JPanel implements MouseWheelListener,
             yPressed = e.getY() - yOffset;
         }            
     }
+    
+    /**
+     * This overriden function of the mouseDragged event calculates how much the
+     * the mammoth site map must be offset must be changed to make it appear
+     * that the user is dragging the mammoth site map around with the mouse
+     * when they click and drag. In order to make the mammoth site map move
+     * with the mouse when the user is dragging the mouse, repaint is called
+     * every time this event is registered.
+     * 
+     * @param e event parameter.
+     */
     @Override
     public void mouseDragged(MouseEvent e)
     {
@@ -298,6 +396,31 @@ public class MapPainter extends JPanel implements MouseWheelListener,
        
         repaint();
     }
+    
+    /**
+     * <p>
+     * This overriden function of the mouseCLicked event determines whether a
+     * bone was clicked on. It implements this by checking for a bone that is
+     * within the area clicked on the mammoth site map. The class member
+     * variable lines contains the x and y min and max that is the bounding
+     * area of a bone. </p>
+     * 
+     * <p>
+     * If a click falls with in the area of a bones bounding
+     * box, that bone is set as the active bone and its information is displayed
+     * in the MenuPanel. When a bone is set as the active bone it is also
+     * highlighted in magenta on the mammoth site map. If the mouse click
+     * was not in the bounds of any bone on the mammoth site map, then the
+     * bone information pane in the MenuPanel is set to not visible. </p>
+     * 
+     * <p>
+     * In some cases, bones overlap each other and there is not way to select
+     * the bone underneath it. In order to fix this problem, the function
+     * will not set a bone as an active bone if it was the last bone to be
+     * clicked. This doubles up to allow the the user to deselect a particular
+     * bone by clicking it again. </p>
+     * @param e 
+     */
     @Override
     public void mouseClicked(MouseEvent e)
     {
@@ -381,6 +504,16 @@ public class MapPainter extends JPanel implements MouseWheelListener,
         repaint();       
     }
 
+    /**
+     * This overriden function of the mouseWheelMoved event calculates the 
+     * offset and new zoom level that is applied to the mammoth site map to
+     * implement zooming relative to the mouses position on the mammoth site
+     * map. The implementation is not perfect, the further the zoom level is
+     * from the default value, the worse the zooming becomes. Near the default
+     * zooming value, zooming relative to the mouse works relatively well.
+     * 
+     * @param e event parameter
+     */
     @Override
     public void mouseWheelMoved(MouseWheelEvent e)
     {
@@ -438,19 +571,29 @@ public class MapPainter extends JPanel implements MouseWheelListener,
         wheelDebouncerOn = !wheelDebouncerOn;
     }
     
+    /**
+     * Because MouseListener is implemented in this class, this function has to
+     * be overriden, though it doesn't do anything.
+     * @param e event parameter.
+     */
     @Override
     public void mouseMoved(MouseEvent e)
     {
 
     }
     
+    /**
+     * This public function is used when the "Reset View" button is clicked
+     * on the MenuPanel. The function resets the xOffset, yOffset, zoomLevel,
+     * and scaleFactor to their default values, effectively reseting the mammoth
+     * site map to its original position.
+     */
     public void resetView()
     {
         xOffset = 50;
         yOffset = 50;
         zoomLevel = 0;
-        scaleFactor = 15.0;
+        scaleFactor = 12.5;
         repaint();
     }
-
 }
