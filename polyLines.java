@@ -6,16 +6,28 @@
 
 package guiassignment2;
 
-import javax.swing.*;
 import java.util.*;
 import org.jdom2.*;
-import guiassignment2.MapPainter;
 
 /**
- *
- * @author Ben
+ * This class is used to obtain all the information available about a bone
+ * record. The function getBoneRecs is used to initiate this process. This
+ * process is not initiated in the class constructor. XMLParse class is
+ * implemented to retrieve the information from the bone record XML files.
+ * <br>
+ * When getBoneRecs is called, it reads the information from bones.xml. Then
+ * the individual records uniqueID is extracted to open the bone records
+ * XML file that contains all the information necessary to draw the bone on
+ * the mammoth site map.
+ * <br>
+ * The points for a bone record are stored in a two dimensional ArrayList where
+ * each row corresponds to a different  bone record. Each column in a row
+ * corresponds to a differnt poly line that makes up the bone in that row.
+ * This data is retrieved from the class and used in the MapPainter to draw
+ * the bones on the mammoth site map.
+ * 
+ * @author Benjamin Sherman, Derek Stotz, & Erik Hattervig
  */
-
 public class polyLines
 {
     
@@ -65,12 +77,13 @@ public class polyLines
         allPolyPoints = new ArrayList<>(); 
 
     }
-   /* 
-    this function is iterates through all the bone records listed in bones.xml.
-    It then opens up the corresponding bone record xml file. There are 352 valid
-    bone record files.
-    It iteratives through each record id in bones.xml, finds the records
-    files, and stores the polyline elements as well as all other record info.
+   /**
+    * This function is iterates through all the bone records listed in bones.xml.
+    * It then opens up the corresponding bone record xml file. There are 352 valid
+    * bone record files. <br>
+    * It iterates through each record id in bones.xml, finds the records
+    * files, and stores the polyline elements as well as all other record info.
+    *
     */
     public void getBoneRecs()
     {
@@ -114,6 +127,23 @@ public class polyLines
        }
     }
     
+    /**
+     * This function is given all the children of a bone record. Then the poly
+     * line child which contains all the points that must be drawn to make a 
+     * bone is extracted. From there, there are mulitple polyline children
+     * that are looped through, getting all the points for each polyline and
+     * storing it in an ArrayList which contains arrays of Doubles. <br>
+     * The polypoints are extracted as one long line of strings. From there
+     * the long string has all uncessary characters removed and then is split on
+     * spaces. Then the Array of strings are parsed into doubles.
+     * 
+     * @param current contains all the children of a bone record.
+     * 
+     * @return xyPoints ArrayList of Double arrays. Each Double array in the ArrayList
+     * contains one polyline. Each element in the ArrayList contains all of one
+     * bones polylines.
+     * 
+     */
     private ArrayList<Double[]> getPolyLines( Element current )
     {
         String[] numbers;
@@ -146,8 +176,11 @@ public class polyLines
         return xyPoints;
     }
     
-/* this function given an array of strings, parses those strings into integers
-    and stores them in an array of doubles which are returned from the function.
+
+    /**
+    * This function given an array of strings, parses those strings into
+    * integers and stores them in an array of doubles which are returned
+    * from the function.
     */
     private Double[] getPolyPoints(String[] x_y)
     {

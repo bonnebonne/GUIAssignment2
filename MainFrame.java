@@ -1,18 +1,15 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package guiassignment2;
 
-/**
+/**MainFrame
  *
- * @author Ben
+ * The MainFrame class is the JFrame class for the Kiosk software.  It contains
+ * the public static void main and a constructor for the MainFrame.
+ * 
+ * @author BenjaminSherman, Derek Stotz, Erik Hattervig
  */
 public class MainFrame extends javax.swing.JFrame {
 
-    /**
+    /**MainFrame
      * Creates new form MainFrame
      */
     public MainFrame() {
@@ -44,7 +41,7 @@ public class MainFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    /**
+    /**main
      * @param args the command line arguments
      */
     public static void main(String args[]) {
@@ -78,7 +75,4 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
     }
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    // End of variables declaration//GEN-END:variables
 }

@@ -1,23 +1,20 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package guiassignment2;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-/**
+/**ManuPanel
+ * 
+ * The JPanel which contains the bone information, the detail slider, and the
+ * Exit and Reset View buttons.  It is placed to the left of the MapPainter and
+ * remains at a constant size and visibility.
  *
- * @author Ben
+ * @author BenjaminSherman, Derek Stotz, Erik Hattervig
  */
 public class MenuPanel extends JPanel{
     //MapPainter pnt = new MapPainter();
     
+    //labels for bone information
     public JPanel infoPanel;
     public JLabel Title;
     public JLabel BoneImage;
@@ -39,7 +36,11 @@ public class MenuPanel extends JPanel{
     public JButton exitButton;
     public JPanel buttonPanel;
 
-    // stores a bone record data element    
+    /**MenuPanel
+     * Creates new MenuPanel and all interior components.
+     * Sets information for all interior components and
+     * adds some of them to the panel.  
+     */
     public MenuPanel()
     {
         //set the min and max size so the layout doesn't resize the menu wildly
@@ -66,6 +67,7 @@ public class MenuPanel extends JPanel{
         buttonPanel.setMaximumSize(new Dimension(320, 36));
         buttonPanel.setMinimumSize(new Dimension(320, 36));
         
+        //create the components inside of the infoPanel
         Title= new JLabel();
         BoneImage= new JLabel();
         UniqueID= new JLabel();
@@ -83,6 +85,7 @@ public class MenuPanel extends JPanel{
         ObjectID= new JLabel();
         shapeLength= new JLabel();
     
+        //insert labels in the infoPanel and make it visible
         infoPanel.add(Title);
         infoPanel.add(BoneImage);
         infoPanel.add(UniqueID);
@@ -100,6 +103,8 @@ public class MenuPanel extends JPanel{
         infoPanel.add(ObjectID);
         infoPanel.add(shapeLength);
         
+        //make the infoPanel visible, so when the Controller sets the
+        //MenuPanel as visible, the infoPanel is ready to go.
         infoPanel.setVisible(false);
     }        
     

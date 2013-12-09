@@ -6,8 +6,6 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 import java.util.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.jdom2.Element;
 
 /** 
@@ -20,10 +18,10 @@ import org.jdom2.Element;
  * make up the walkway. The points that make up the walk way are retrieved
  * by this MapPainter class.
  * 
- * @author Benjamin Sherman, Derek Stotz
+ * @author Benjamin Sherman, Derek Stotz, & Erik Hattervig
  */
 public class MapPainter extends JPanel implements MouseWheelListener,
-            MouseListener, MouseMotionListener, ChangeListener
+            MouseListener, MouseMotionListener
 {
     /** 
      * This array of GeneralPaths is necessary to draw the bones in different
@@ -44,8 +42,8 @@ public class MapPainter extends JPanel implements MouseWheelListener,
      */
     public polyLines lines;
     /** 
-     * Used to get reference to the controller so that the detail slider signal
-     * can be handled within this class.
+     * Used to get reference to the controller so that the menuPanel can display
+     * differnt bone information.
      */
     public Controller controller;
     /** 
@@ -115,6 +113,8 @@ public class MapPainter extends JPanel implements MouseWheelListener,
        // get data from xml records
         lines.getBoneRecs();
         wheelDebouncerOn = true;
+        
+
     }
 
     /** 
@@ -349,19 +349,8 @@ public class MapPainter extends JPanel implements MouseWheelListener,
 
     }
 
-    /** 
-     * This function has been overriden to set the class member variable detail
-     * level when a signal is sent that the slider on the MenuPanel. It sets
-     * detailLevel to that the slider is set at.
+    
 
-     * @param e event parameter.
-     */
-    @Override
-    public void stateChanged(ChangeEvent e)
-    {
-        detailLevel = controller.DetailSlider.getValue();
-        repaint();
-    }
     
     /**
      * Saves the position of the mouse when it is pressed with the offset
@@ -493,7 +482,6 @@ public class MapPainter extends JPanel implements MouseWheelListener,
                         && !(lastBone.equals(lines.uniqueID.get(i))))
                 {
                     activeBone = lines.uniqueID.get(i);
-                    lastBone = lines.uniqueID.get(i);
                     controller.showBoneInfo(activeBone);
                     break;
                 }
@@ -530,13 +518,10 @@ public class MapPainter extends JPanel implements MouseWheelListener,
                 else return;
 
                 scaleFactorMultiplier = Math.pow(1.1, zoomLevel);
-                scaleFactor = 15 * scaleFactorMultiplier;
+                scaleFactor = 12.5 * scaleFactorMultiplier;
 
                 xOffset += (x - x*1.1)*scaleFactorMultiplier;
                 yOffset += (y - y*1.1)*scaleFactorMultiplier;
-                System.out.println("zoom in");
-                System.out.println(xOffset);
-                System.out.println(yOffset);       
             }
             else if(wheelDirection > 0 )
             {
@@ -546,18 +531,14 @@ public class MapPainter extends JPanel implements MouseWheelListener,
                 else return;
                     
                 scaleFactorMultiplier = Math.pow(1.1, zoomLevel);
-                scaleFactor = 15 * scaleFactorMultiplier;
+                scaleFactor = 12.5 * scaleFactorMultiplier;
 
-    //            xOffset = (int)((double)xOffset*.909091);
-    //            yOffset = (int)((double)yOffset*.909091);
                 xOffset -= (x/1.1-x)*scaleFactorMultiplier;
                 yOffset -= (y/1.1-y)*scaleFactorMultiplier;
-
-               
-                System.out.println("zoom out");
-                System.out.println(xOffset);
-                System.out.println(yOffset);      
+      
             }
+
+          // keep window from going too far out of bounds
           if(xOffset > scaleFactor*(scaleMeters[2]-scaleMeters[0]))//this.getWidth())
             xOffset = (int) (scaleFactor*(scaleMeters[2]-scaleMeters[0]) - 2.0*scaleFactor);
           if(yOffset > scaleFactor*(scaleMeters[3]-scaleMeters[1]) - 2.0 * scaleFactor)//this.getHeight())
@@ -594,6 +575,12 @@ public class MapPainter extends JPanel implements MouseWheelListener,
         yOffset = 50;
         zoomLevel = 0;
         scaleFactor = 12.5;
+        repaint();
+    }
+    
+    public void setDetailLevel(int detail)
+    {
+        detailLevel = detail;
         repaint();
     }
 }

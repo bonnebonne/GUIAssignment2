@@ -1,18 +1,29 @@
-// ElementLister.java
-// Use JDOM to parse an XML file
-// Based on Java example in Processing XML with Java (Elliotte Harold).
-// JMW 131029
-
 package guiassignment2;
 
 import org.jdom2.*;
 import org.jdom2.input.SAXBuilder;
 import java.io.IOException;
-import java.util.*;
 
+
+/**XML
+ *
+ * Uses JDOM to parse an XML file
+ * Based on Java example in Processing XML with Java (Elliotte Harold).
+ *
+ * @author BenjaminSherman, Derek Stotz, Erik Hattervig
+ */
 public class XMLParse
 {
+    //the document to be parsed;  a JDOM class
     private Document doc = null;
+    
+    /**XMLParse
+     * Creates new XMLParse and reads the file defined in args, storing it in
+     * a document.  Handles the case where the document could not be read, and
+     * returns null.
+     * 
+     * @param args the filename
+     */
     public XMLParse( String args )
     {
 	// read and parse XML document
@@ -37,6 +48,11 @@ public class XMLParse
         
     }
     
+    /**getRoot
+     * Finds and returns the root element of the stored JDOM Document.
+     * 
+     * @return the root element
+     */
     public Element getRoot()
     {
         // only return 'doc.getRootElement()' if it is NOT null
